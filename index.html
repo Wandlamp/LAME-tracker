@@ -814,7 +814,7 @@ function searchCards() {
       resultsEl.innerHTML = results.map(c => {
         const inkClass = c.ink ? 'ink-' + c.ink.toLowerCase() : '';
         const inkwellIcon = c.inkwell ? '💧' : '🚫';
-        return `<div class="card-search-result" onclick="addCardToDeck(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        return `<div class="card-search-result" data-card="${encodeURIComponent(JSON.stringify(c))}">
           <img class="card-thumb" src="${c.image_uris?.digital?.small || ''}" alt="${c.name}" loading="lazy" onerror="this.style.display='none'">
           <div style="flex:1">
             <div class="card-info-name ${inkClass}">${c.name}${c.version ? ' — ' + c.version : ''}</div>
