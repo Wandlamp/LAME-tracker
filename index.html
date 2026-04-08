@@ -947,6 +947,55 @@ function clearDeck() {
   renderDeck();
 }
 
+function toggleImport() {
+  const el = document.getElementById('import-wrap');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function importDeck() {
+  const text = document.getElementById('import-text').value.trim();
+  if (!text) return;
+
+  const lines = text
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  if (!lines.length) return;
+
+  for (const line of lines) {
+    const match = line.match(/^(\d+)\s+(.+)$/);
+    if (!match) continue;
+
+    const count = parseInt(match[1], 10);
+    const name = match[2];
+
+    try {
+      const apiUrl =
+        'https://api.lorcast.com/v0/cards/search?q=' +
+        encodeURIComponent(name);
+
+      const res = await fetch(
+        'https://corsproxy.io/?' + encodeURIComponent(apiUrl)
+      );
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const card = data.results?.[0];
+      if (!card) continue;
+
+      for (let i = 0; i < count; i++) {
+        addCardToDeck(card);
+      }
+    } catch (e) {
+      console.warn('Import mislukt voor:', name);
+    }
+  }
+
+  document.getElementById('import-text').value = '';
+  toggleImport();
+}
 function renderSavedDecks() {
   const el = document.getElementById('saved-decks-list');
   if (!savedDecks.length) {
