@@ -829,6 +829,19 @@ function searchCards() {
   }, 400);
 }
 
+document.getElementById('search-results').addEventListener('click', (e) => {
+  const el = e.target.closest('.card-search-result');
+  if (!el) return;
+
+  try {
+    const card = JSON.parse(decodeURIComponent(el.dataset.card));
+    addCardToDeck(card);
+  } catch (err) {
+    console.error(err);
+    alert('Fout bij toevoegen kaart');
+  }
+});
+  
 function addCardToDeck(card) {
   const id = card.id;
   if (currentDeck[id]) {
