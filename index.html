@@ -366,11 +366,28 @@
         <!-- DECK -->
         <div>
           <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-              <div class="card-title" style="margin-bottom:0">Huidig deck (<span id="deck-count">0</span>/60)</div>
-              <div style="display:flex;gap:6px">
-                <button class="btn btn-ghost btn-sm" onclick="saveDeck()">Opslaan</button>
-                <button class="btn btn-danger btn-sm" onclick="clearDeck()">Leeg</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+  <div class="card-title" style="margin-bottom:0">
+    Huidig deck (<span id="deck-count">0</span>/60)
+  </div>
+  <div style="display:flex;gap:6px">
+    <button class="btn btn-ghost btn-sm" onclick="toggleImport()">Import</button>
+    <button class="btn btn-ghost btn-sm" onclick="saveDeck()">Opslaan</button>
+    <button class="btn btn-danger btn-sm" onclick="clearDeck()">Leeg</button>
+  </div>
+</div>
+
+<div id="import-wrap" style="display:none;margin-bottom:12px">
+  <textarea id="import-text" rows="6" placeholder="Plak hier je deck...
+bijv:
+4 Elsa – Spirit of Winter
+2 Olaf
+3 Let It Go"></textarea>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn btn-primary btn-sm" onclick="importDeck()">Importeer</button>
+    <button class="btn btn-ghost btn-sm" onclick="toggleImport()">Annuleren</button>
+  </div>
+</div>
               </div>
             </div>
             <input type="text" id="deck-name" placeholder="Deck naam..." style="margin-bottom:12px">
