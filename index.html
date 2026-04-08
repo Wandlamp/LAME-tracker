@@ -801,11 +801,9 @@ function searchCards() {
       let query = q || '*';
       if (ink) query += ` ink:${ink}`;
       if (type) query += ` type:${type}`;
-
+      
       const apiUrl = 'https://api.lorcast.com/v0/cards/search?q=' + encodeURIComponent(query);
-      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-
-      const res = await fetch(url);
+      const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(apiUrl));
 
       const data = await res.json();
       spinner.classList.remove('visible');
