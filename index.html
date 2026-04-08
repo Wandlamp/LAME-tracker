@@ -804,6 +804,10 @@ function searchCards() {
       
       const apiUrl = 'https://api.lorcast.com/v0/cards/search?q=' + encodeURIComponent(query);
       const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(apiUrl));
+      
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      ``
+
 
       const data = await res.json();
       spinner.classList.remove('visible');
