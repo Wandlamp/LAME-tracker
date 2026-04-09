@@ -6,6 +6,7 @@
 <title>LAME Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0e0e10;
@@ -27,32 +28,31 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; min-height: 100vh; }
 
-  /* HEADER */
-  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--amber); }
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; gap: 1rem; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--amber); white-space: nowrap; }
   .logo span { color: var(--text); opacity: 0.4; font-size: 13px; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; margin-left: 8px; vertical-align: middle; }
 
-  /* NAV */
-  nav { display: flex; gap: 4px; }
-  nav button { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav button { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   nav button:hover { color: var(--text); background: var(--bg3); }
   nav button.active { color: var(--amber); background: rgba(245,166,35,0.1); }
 
-  /* LAYOUT */
+  .player-bar { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 8px 2rem; display: flex; align-items: center; gap: 12px; }
+  .player-bar label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+  .player-bar select { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 6px 12px; outline: none; cursor: pointer; }
+  .player-bar select:focus { border-color: var(--amber); }
+
   main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
   .section { display: none; }
   .section.active { display: block; }
 
-  /* CARDS */
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; }
   .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--amber); margin-bottom: 1rem; }
 
-  /* GRID */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
 
-  /* METRICS */
   .metric { background: var(--bg3); border-radius: var(--radius-sm); padding: 1rem 1.25rem; }
   .metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
   .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; }
@@ -60,14 +60,12 @@
   .metric-value.red { color: var(--red); }
   .metric-value.amber { color: var(--amber); }
 
-  /* FORM ELEMENTS */
   label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 6px; margin-top: 14px; }
   input, select, textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 12px; outline: none; transition: border 0.15s; }
   input:focus, select:focus { border-color: var(--amber); }
   input::placeholder { color: var(--muted); }
   select option { background: var(--bg3); }
 
-  /* BUTTONS */
   .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
   .btn-primary { background: var(--amber); color: #000; }
   .btn-primary:hover { background: var(--amber2); }
@@ -77,7 +75,6 @@
   .btn-danger:hover { background: rgba(248,113,113,0.25); }
   .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-  /* BADGE */
   .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
   .badge-win { background: rgba(52,211,153,0.15); color: var(--green); }
   .badge-loss { background: rgba(248,113,113,0.15); color: var(--red); }
@@ -85,93 +82,108 @@
   .badge-setchamp { background: rgba(167,139,250,0.15); color: var(--purple); }
   .badge-tournooi { background: rgba(245,166,35,0.15); color: var(--amber); }
 
-  /* INK COLORS */
-  .ink-amber { color: #f59e0b; }
-  .ink-amethyst { color: #a78bfa; }
-  .ink-emerald { color: #34d399; }
-  .ink-ruby { color: #f87171; }
-  .ink-sapphire { color: #60a5fa; }
-  .ink-steel { color: #94a3b8; }
-  .ink-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
-  .dot-amber { background: #f59e0b; }
-  .dot-amethyst { background: #a78bfa; }
-  .dot-emerald { background: #34d399; }
-  .dot-ruby { background: #f87171; }
-  .dot-sapphire { background: #60a5fa; }
-  .dot-steel { background: #94a3b8; }
-
-  /* TABLE */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--border); }
   td { padding: 10px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: rgba(255,255,255,0.02); }
 
-  /* PROGRESS */
   .bar-bg { background: var(--bg3); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 4px; }
   .bar { height: 6px; border-radius: 99px; background: var(--amber); transition: width 0.4s ease; }
   .bar.green { background: var(--green); }
   .bar.red { background: var(--red); }
 
-  /* EMPTY STATE */
   .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; font-size: 14px; }
   .empty-icon { font-size: 32px; margin-bottom: 8px; }
 
-  /* DECK BUILDER */
-  .card-search-result { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.1s; border: 1px solid transparent; }
-  .card-search-result:hover { background: var(--bg3); border-color: var(--border2); }
-  .card-thumb { width: 36px; height: 50px; border-radius: 4px; object-fit: cover; background: var(--bg3); flex-shrink: 0; }
-  .card-info-name { font-size: 13px; font-weight: 600; }
-  .card-info-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .deck-slot { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg3); margin-bottom: 4px; }
-  .deck-slot-count { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--amber); min-width: 20px; text-align: center; }
-  .deck-slot-name { flex: 1; font-size: 13px; }
-  .deck-slot-cost { font-size: 11px; color: var(--muted); background: var(--bg2); padding: 2px 7px; border-radius: 99px; }
-  .qty-btn { background: var(--bg2); border: 1px solid var(--border2); color: var(--text); width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; line-height: 1; }
-  .qty-btn:hover { background: var(--border2); }
-
-  /* PROBABILITY */
-  .prob-card { background: var(--bg3); border-radius: var(--radius-sm); padding: 1rem; text-align: center; }
-  .prob-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--amber); }
-  .prob-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-  /* CHART WRAPPER */
   .chart-wrap { position: relative; width: 100%; }
 
-  /* SAVED DECKS */
-  .deck-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; cursor: pointer; transition: border-color 0.15s; }
-  .deck-card:hover { border-color: var(--amber); }
-  .deck-card.selected { border-color: var(--amber); background: rgba(245,166,35,0.05); }
-  .deck-card-name { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-  .deck-card-meta { font-size: 12px; color: var(--muted); }
-
-  /* SEARCH LOADING */
-  .search-spinner { display: none; color: var(--muted); font-size: 13px; padding: 8px 0; }
-  .search-spinner.visible { display: block; }
-  .results-box { max-height: 300px; overflow-y: auto; margin-top: 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg2); }
-  .results-box:empty { display: none; }
-
-  /* TABS inside section */
-  .sub-tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .sub-tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
   .sub-tab { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
   .sub-tab:hover { color: var(--text); }
   .sub-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
   .sub-section { display: none; }
   .sub-section.active { display: block; }
 
-  /* MATCHUP TABLE BARS */
-  .matchup-pct { font-family: 'Bebas Neue', sans-serif; font-size: 20px; min-width: 50px; text-align: right; }
+  .prob-card { background: var(--bg3); border-radius: var(--radius-sm); padding: 1rem; text-align: center; }
+  .prob-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--amber); }
+  .prob-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-  /* RESPONSIVE */
+  /* CONFIG PAGE */
+  .config-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .config-section h3 { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--amber); margin-bottom: 1rem; }
+  .player-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 99px; padding: 6px 14px; font-size: 13px; margin: 4px; }
+  .player-chip button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+  .player-chip button:hover { color: var(--red); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px 20px; font-size: 13px; color: var(--text); z-index: 9999; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* SETUP OVERLAY */
+  .setup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .setup-box { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 2rem; max-width: 520px; width: 100%; }
+  .setup-box h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--amber); margin-bottom: 0.5rem; }
+  .setup-box p { color: var(--muted); font-size: 13px; margin-bottom: 1.25rem; line-height: 1.6; }
+  .setup-box .step { display: flex; gap: 12px; margin-bottom: 1rem; }
+  .setup-box .step-num { background: var(--amber); color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .setup-box .step-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .setup-box .step-text a { color: var(--amber); }
+  .setup-box .step-text code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--text); }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; padding: 1rem 0; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   @media (max-width: 700px) {
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
     .grid-3 { grid-template-columns: repeat(2, 1fr); }
     .grid-2 { grid-template-columns: 1fr; }
-    nav button { padding: 6px 10px; font-size: 13px; }
+    nav button { padding: 6px 10px; font-size: 12px; }
+    .player-bar { flex-wrap: wrap; }
+    header { height: auto; padding: 10px 1rem; flex-wrap: wrap; }
   }
 </style>
 </head>
 <body>
+
+<!-- SETUP OVERLAY -->
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-box">
+    <h2>LAME Tracker instellen</h2>
+    <p>Verbind de tracker met je eigen gratis Supabase database zodat alle data bewaard blijft. Dit doe je eenmalig in 5 minuten.</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">Maak een gratis account op <a href="https://supabase.com" target="_blank">supabase.com</a> en maak een nieuw project aan.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">Ga naar <strong>SQL Editor</strong> in je project en voer de SQL uit die onderaan staat (kopieer en plak).</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">Ga naar <strong>Project Settings → API</strong>. Kopieer je <code>Project URL</code> en <code>anon public</code> key hieronder.</div>
+    </div>
+
+    <label>Supabase Project URL</label>
+    <input type="text" id="setup-url" placeholder="https://xxxxxx.supabase.co">
+    <label>Supabase Anon Key</label>
+    <input type="text" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIs...">
+
+    <div style="margin-top:1.25rem;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveSupabaseConfig()">Verbinden</button>
+    </div>
+
+    <details style="margin-top:1.5rem">
+      <summary style="cursor:pointer;font-size:12px;color:var(--muted)">SQL om te plakken in Supabase SQL Editor</summary>
+      <pre id="setup-sql" style="margin-top:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:1rem;font-size:11px;color:var(--muted);overflow-x:auto;white-space:pre-wrap;line-height:1.6"></pre>
+    </details>
+  </div>
+</div>
 
 <header>
   <div class="logo">LAME <span>Lorcana Tracker</span></div>
@@ -180,136 +192,127 @@
     <button onclick="showSection('add')">+ Spel</button>
     <button onclick="showSection('matchups')">Matchups</button>
     <button onclick="showSection('history')">Geschiedenis</button>
-    <button onclick="showSection('deckbuilder')">Deck Builder</button>
+    <button onclick="showSection('prob')">Kansen</button>
+    <button onclick="showSection('config')">⚙ Beheer</button>
   </nav>
 </header>
 
+<div class="player-bar">
+  <label>Speler:</label>
+  <select id="active-player" onchange="onPlayerChange()">
+    <option value="">— Kies speler —</option>
+  </select>
+</div>
+
 <main>
 
-  <!-- ===== OVERZICHT ===== -->
+  <!-- OVERZICHT -->
   <div id="sec-stats" class="section active">
-    <div class="grid-4" style="margin-bottom:1.5rem" id="overview-metrics">
-      <div class="metric"><div class="metric-label">Gespeeld</div><div class="metric-value amber" id="m-total">0</div></div>
+    <div class="grid-4" style="margin-bottom:1.5rem">
+      <div class="metric"><div class="metric-label">Gespeeld</div><div class="metric-value amber" id="m-total">—</div></div>
       <div class="metric"><div class="metric-label">Win Rate</div><div class="metric-value amber" id="m-wr">—</div></div>
-      <div class="metric"><div class="metric-label">Gewonnen</div><div class="metric-value green" id="m-wins">0</div></div>
-      <div class="metric"><div class="metric-label">Verloren</div><div class="metric-value red" id="m-losses">0</div></div>
+      <div class="metric"><div class="metric-label">Gewonnen</div><div class="metric-value green" id="m-wins">—</div></div>
+      <div class="metric"><div class="metric-label">Verloren</div><div class="metric-value red" id="m-losses">—</div></div>
     </div>
-
     <div class="grid-2" style="margin-bottom:1rem">
       <div class="card">
         <div class="card-title">Winrate per deck</div>
-        <div id="deck-breakdown"><div class="empty"><div class="empty-icon">🃏</div>Nog geen spellen</div></div>
+        <div id="deck-breakdown"><div class="empty"><div class="empty-icon">🃏</div>Kies een speler</div></div>
       </div>
       <div class="card">
         <div class="card-title">Winrate over tijd</div>
-        <div class="chart-wrap" style="height:200px">
-          <canvas id="chart-time" role="img" aria-label="Winrate over tijd"></canvas>
-        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-time" role="img" aria-label="Winrate over tijd"></canvas></div>
       </div>
     </div>
-
     <div class="grid-2">
       <div class="card">
         <div class="card-title">Beste matchup</div>
         <div id="best-matchup"><div class="empty"><div class="empty-icon">🏆</div>Nog geen data</div></div>
       </div>
       <div class="card">
-        <div class="card-title">Per event type</div>
-        <div class="chart-wrap" style="height:160px">
-          <canvas id="chart-events" role="img" aria-label="Winrate per event type"></canvas>
-        </div>
+        <div class="card-title">Winrate per event type</div>
+        <div class="chart-wrap" style="height:160px"><canvas id="chart-events" role="img" aria-label="Winrate per event"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- ===== SPEL TOEVOEGEN ===== -->
+  <!-- SPEL TOEVOEGEN -->
   <div id="sec-add" class="section">
     <div class="card" style="max-width:600px">
       <div class="card-title">Nieuw spel registreren</div>
-
-      <div class="grid-2">
-        <div>
-          <label>Jouw deck</label>
-          <input type="text" id="my-deck" placeholder="bv. Ruby/Sapphire Control" list="dl-my" autocomplete="off">
-          <datalist id="dl-my"></datalist>
-        </div>
-        <div>
-          <label>Tegenstander deck</label>
-          <input type="text" id="opp-deck" placeholder="bv. Amber/Steel Aggro" list="dl-opp" autocomplete="off">
-          <datalist id="dl-opp"></datalist>
-        </div>
+      <div id="add-no-player" style="display:none">
+        <div class="empty"><div class="empty-icon">👤</div>Selecteer eerst een speler in de balk bovenaan.</div>
       </div>
-
-      <div class="grid-2">
-        <div>
-          <label>Resultaat</label>
-          <select id="result">
-            <option value="win">Gewonnen ✓</option>
-            <option value="loss">Verloren ✗</option>
-          </select>
+      <div id="add-form">
+        <div class="grid-2">
+          <div>
+            <label>Jouw deck</label>
+            <input type="text" id="my-deck" placeholder="bv. Ruby/Sapphire Control" list="dl-my" autocomplete="off">
+            <datalist id="dl-my"></datalist>
+          </div>
+          <div>
+            <label>Tegenstander deck</label>
+            <input type="text" id="opp-deck" placeholder="bv. Amber/Steel Aggro" list="dl-opp" autocomplete="off">
+            <datalist id="dl-opp"></datalist>
+          </div>
         </div>
-        <div>
-          <label>Datum</label>
-          <input type="date" id="game-date">
+        <div class="grid-2">
+          <div>
+            <label>Resultaat</label>
+            <select id="result">
+              <option value="win">Gewonnen ✓</option>
+              <option value="loss">Verloren ✗</option>
+            </select>
+          </div>
+          <div>
+            <label>Datum</label>
+            <input type="date" id="game-date">
+          </div>
         </div>
-      </div>
-
-      <label>Event type</label>
-      <select id="event-type" onchange="toggleTourneyField()">
-        <option value="locals">Locals</option>
-        <option value="setchamp">Set Champ</option>
-        <option value="tournooi">Toernooi</option>
-      </select>
-
-      <div id="tourney-name-wrap" style="display:none">
-        <label>Naam / locatie toernooi</label>
-        <input type="text" id="tourney-name" placeholder="bv. DLC Gent">
-      </div>
-
-      <label>Notitie (optioneel)</label>
-      <input type="text" id="note" placeholder="bv. verloren door mana flood turn 5">
-
-      <div style="margin-top:1.25rem; display:flex; gap:8px;">
-        <button class="btn btn-primary" onclick="addGame()">Opslaan</button>
-        <button class="btn btn-ghost" onclick="showSection('stats')">Annuleren</button>
+        <label>Event type</label>
+        <select id="event-type" onchange="toggleTourneyField()">
+          <option value="locals">Locals</option>
+          <option value="setchamp">Set Champ</option>
+          <option value="tournooi">Toernooi</option>
+        </select>
+        <div id="tourney-name-wrap" style="display:none">
+          <label>Naam / locatie toernooi</label>
+          <input type="text" id="tourney-name" placeholder="bv. DLC Gent">
+        </div>
+        <label>Notitie (optioneel)</label>
+        <input type="text" id="note" placeholder="bv. verloren door flood turn 5">
+        <div style="margin-top:1.25rem;display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="addGame()">Opslaan</button>
+          <button class="btn btn-ghost" onclick="showSection('stats')">Annuleren</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ===== MATCHUPS ===== -->
+  <!-- MATCHUPS -->
   <div id="sec-matchups" class="section">
     <div class="sub-tabs">
-      <button class="sub-tab active" onclick="showSubTab('matchups','all')">Alle matchups</button>
-      <button class="sub-tab" onclick="showSubTab('matchups','best')">Beste</button>
-      <button class="sub-tab" onclick="showSubTab('matchups','worst')">Moeilijkste</button>
+      <button class="sub-tab active" onclick="showSubTab('mu','all',this)">Alle</button>
+      <button class="sub-tab" onclick="showSubTab('mu','best',this)">Beste</button>
+      <button class="sub-tab" onclick="showSubTab('mu','worst',this)">Moeilijkste</button>
     </div>
-
-    <div id="matchups-all" class="sub-section active">
-      <div class="card">
-        <div class="card-title">Alle matchups</div>
-        <div id="matchup-all-table"><div class="empty"><div class="empty-icon">⚔️</div>Nog geen matchup data</div></div>
-      </div>
+    <div id="mu-all" class="sub-section active">
+      <div class="card"><div class="card-title">Alle matchups</div><div id="mu-all-table"><div class="empty">Kies een speler</div></div></div>
     </div>
-    <div id="matchups-best" class="sub-section">
-      <div class="card">
-        <div class="card-title">Beste matchups (minstens 2 spellen)</div>
-        <div id="matchup-best-table"><div class="empty">Nog geen data</div></div>
-      </div>
+    <div id="mu-best" class="sub-section">
+      <div class="card"><div class="card-title">Beste matchups (min. 2 spellen)</div><div id="mu-best-table"><div class="empty">Nog geen data</div></div></div>
     </div>
-    <div id="matchups-worst" class="sub-section">
-      <div class="card">
-        <div class="card-title">Moeilijkste matchups (minstens 2 spellen)</div>
-        <div id="matchup-worst-table"><div class="empty">Nog geen data</div></div>
-      </div>
+    <div id="mu-worst" class="sub-section">
+      <div class="card"><div class="card-title">Moeilijkste matchups (min. 2 spellen)</div><div id="mu-worst-table"><div class="empty">Nog geen data</div></div></div>
     </div>
   </div>
 
-  <!-- ===== GESCHIEDENIS ===== -->
+  <!-- GESCHIEDENIS -->
   <div id="sec-history" class="section">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
         <div class="card-title" style="margin-bottom:0">Spelgeschiedenis</div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px">
           <select id="filter-deck" style="width:auto;font-size:12px;padding:6px 10px" onchange="renderHistory()">
             <option value="">Alle decks</option>
           </select>
@@ -321,188 +324,298 @@
           </select>
         </div>
       </div>
-      <div id="history-table"><div class="empty"><div class="empty-icon">📋</div>Nog geen spellen</div></div>
+      <div id="history-table"><div class="empty"><div class="empty-icon">📋</div>Kies een speler</div></div>
     </div>
   </div>
 
-  <!-- ===== DECK BUILDER ===== -->
-  <div id="sec-deckbuilder" class="section">
-    <div class="sub-tabs">
-      <button class="sub-tab active" onclick="showSubTab('deck','build')">Bouwen</button>
-      <button class="sub-tab" onclick="showSubTab('deck','saved')">Opgeslagen decks</button>
-      <button class="sub-tab" onclick="showSubTab('deck','prob')">Kansberekening</button>
-    </div>
-
-    <div id="deck-build" class="sub-section active">
-      <div class="grid-2" style="align-items:start">
-        <!-- ZOEKEN -->
-        <div>
-          <div class="card">
-            <div class="card-title">Kaarten zoeken</div>
-            <input type="text" id="card-search" placeholder="Zoek op naam, type, ink..." oninput="searchCards()">
-            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-              <select id="filter-ink" onchange="searchCards()" style="width:auto;flex:1;font-size:12px;padding:6px 10px">
-                <option value="">Alle kleuren</option>
-                <option value="Amber">Amber</option>
-                <option value="Amethyst">Amethyst</option>
-                <option value="Emerald">Emerald</option>
-                <option value="Ruby">Ruby</option>
-                <option value="Sapphire">Sapphire</option>
-                <option value="Steel">Steel</option>
-              </select>
-              <select id="filter-type" onchange="searchCards()" style="width:auto;flex:1;font-size:12px;padding:6px 10px">
-                <option value="">Alle types</option>
-                <option value="Character">Character</option>
-                <option value="Action">Action</option>
-                <option value="Item">Item</option>
-                <option value="Location">Location</option>
-              </select>
-            </div>
-            <div class="search-spinner" id="search-spinner">Zoeken...</div>
-            <div class="results-box" id="search-results"></div>
+  <!-- KANSEN -->
+  <div id="sec-prob" class="section">
+    <div style="max-width:750px">
+      <div style="margin-bottom:1.25rem">
+        <label>Wat wil je berekenen?</label>
+        <select id="prob-mode" onchange="calcProb()" style="font-size:14px">
+          <option value="uninkable">Kans op uninkable kaart in openingshand</option>
+          <option value="ramp">Kans op ramp kaart (gedeeltelijke mulligan)</option>
+        </select>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">Deck instelling</div>
+        <div class="grid-2">
+          <div>
+            <label>Totaal kaarten in deck</label>
+            <input type="number" id="prob-deck-size" value="60" min="1" max="60" oninput="calcProb()">
           </div>
-        </div>
-
-        <!-- DECK -->
-        <div>
-          <div class="card">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-  <div class="card-title" style="margin-bottom:0">
-    Huidig deck (<span id="deck-count">0</span>/60)
-  </div>
-  <div style="display:flex;gap:6px">
-    <button class="btn btn-ghost btn-sm" onclick="toggleImport()">Import</button>
-    <button class="btn btn-ghost btn-sm" onclick="saveDeck()">Opslaan</button>
-    <button class="btn btn-danger btn-sm" onclick="clearDeck()">Leeg</button>
-  </div>
-</div>
-
-<div id="import-wrap" style="display:none;margin-bottom:12px">
-  <textarea id="import-text" rows="6" placeholder="Plak hier je deck...
-bijv:
-4 Elsa – Spirit of Winter
-2 Olaf
-3 Let It Go"></textarea>
-  <div style="display:flex;gap:8px;margin-top:8px">
-    <button class="btn btn-primary btn-sm" onclick="importDeck()">Importeer</button>
-    <button class="btn btn-ghost btn-sm" onclick="toggleImport()">Annuleren</button>
-  </div>
-</div>
-              </div>
-            </div>
-            <input type="text" id="deck-name" placeholder="Deck naam..." style="margin-bottom:12px">
-            <div id="deck-list"><div class="empty" style="padding:1.5rem">Voeg kaarten toe</div></div>
+          <div>
+            <label id="prob-target-label">Aantal uninkable kaarten</label>
+            <input type="number" id="prob-target" value="10" min="0" max="60" oninput="calcProb()">
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="deck-saved" class="sub-section">
-      <div class="card">
-        <div class="card-title">Opgeslagen decks</div>
-        <div id="saved-decks-list"><div class="empty"><div class="empty-icon">💾</div>Nog geen decks opgeslagen</div></div>
+      <div id="mode-uninkable" class="card" style="margin-bottom:1rem">
+        <div class="card-title">Uninkable in openingshand</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Kans dat je minstens 1 uninkable kaart trekt in je openingshand van 7, en na een volledige mulligan.</p>
+        <div class="grid-3" style="margin-bottom:1.25rem">
+          <div class="prob-card"><div class="prob-value" id="u-hand">—</div><div class="prob-label">Eerste hand (7 kaarten)</div></div>
+          <div class="prob-card"><div class="prob-value" id="u-mull">—</div><div class="prob-label">Na volledige mulligan</div></div>
+          <div class="prob-card"><div class="prob-value" style="color:var(--red)" id="u-none">—</div><div class="prob-label">Kans op géén uninkable</div></div>
+        </div>
+        <label>Verdeling: exact X uninkables in openingshand</label>
+        <div class="chart-wrap" style="height:200px;margin-top:8px">
+          <canvas id="chart-uninkable" role="img" aria-label="Verdeling uninkables"></canvas>
+        </div>
+      </div>
+      <div id="mode-ramp" class="card" style="margin-bottom:1rem;display:none">
+        <div class="card-title">Ramp kaart — gedeeltelijke mulligan</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Je houdt X kaarten vast en trekt de rest opnieuw. Hoe groot is de kans op minstens 1 ramp kaart?</p>
+        <div class="grid-2" style="margin-bottom:1rem">
+          <div>
+            <label>Kaarten vastgehouden</label>
+            <input type="number" id="ramp-kept" value="1" min="0" max="6" oninput="calcProb()">
+          </div>
+          <div>
+            <label>Nieuwe kaarten getrokken</label>
+            <input type="number" id="ramp-drawn" value="6" min="1" max="7" readonly style="opacity:0.6">
+          </div>
+        </div>
+        <label>Kans per aantal vastgehouden kaarten (0 t/m 6)</label>
+        <div id="ramp-table" style="margin-top:8px"></div>
+        <div class="chart-wrap" style="height:180px;margin-top:1.25rem">
+          <canvas id="chart-ramp" role="img" aria-label="Ramp kansen"></canvas>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--text)">Hoe werkt de berekening?</strong><br>
+        We gebruiken de hypergeometrische verdeling: de exacte kans om precies k kaarten van een bepaald type te trekken uit een deck zonder teruglegging.<br><br>
+        <strong style="color:var(--text)">Volledige mulligan:</strong> Alle 7 terug, opnieuw 7. P(≥1) = 1 − P(0)²<br>
+        <strong style="color:var(--text)">Gedeeltelijke mulligan:</strong> X vastgehouden, (7−X) nieuwe kaarten uit resterende (60−X).
       </div>
     </div>
+  </div>
 
-    <div id="deck-prob" class="sub-section">
-      <div style="max-width:750px">
+  <!-- BEHEER -->
+  <div id="sec-config" class="section">
+    <div class="config-section">
+      <h3>Spelers beheren</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Voeg spelers toe of verwijder ze. Iedereen kan data invoeren voor de actieve speler.</p>
+      <div style="display:flex;gap:8px;margin-bottom:1rem">
+        <input type="text" id="new-player-name" placeholder="Naam nieuwe speler" style="max-width:280px" onkeydown="if(event.key==='Enter')addPlayer()">
+        <button class="btn btn-primary" onclick="addPlayer()">Toevoegen</button>
+      </div>
+      <div id="player-chips"><div class="loading"><div class="spinner"></div>Laden...</div></div>
+    </div>
 
-        <!-- MODE SELECTOR -->
-        <div style="margin-bottom:1.25rem">
-          <label>Wat wil je berekenen?</label>
-          <select id="prob-mode" onchange="calcProb()" style="font-size:14px">
-            <option value="uninkable">Kans op uninkable kaart in openingshand</option>
-            <option value="ramp">Kans op ramp kaart (gedeeltelijke mulligan)</option>
-          </select>
-        </div>
-
-        <!-- SHARED INPUTS -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-title">Deck instelling</div>
-          <div class="grid-2">
-            <div>
-              <label>Totaal kaarten in deck</label>
-              <input type="number" id="prob-deck-size" value="60" min="1" max="60" oninput="calcProb()">
-            </div>
-            <div id="prob-target-wrap">
-              <label id="prob-target-label">Aantal uninkable kaarten</label>
-              <input type="number" id="prob-target" value="10" min="0" max="60" oninput="calcProb()">
-            </div>
-          </div>
-        </div>
-
-        <!-- MODE: UNINKABLE -->
-        <div id="mode-uninkable" class="card" style="margin-bottom:1rem">
-          <div class="card-title">Uninkable in openingshand</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Kans dat je minstens 1 uninkable kaart trekt in je openingshand van 7, en na een volledige mulligan.</p>
-
-          <div class="grid-3" style="margin-bottom:1.25rem">
-            <div class="prob-card"><div class="prob-value" id="u-hand">—</div><div class="prob-label">Eerste hand (7 kaarten)</div></div>
-            <div class="prob-card"><div class="prob-value" id="u-mull">—</div><div class="prob-label">Na volledige mulligan</div></div>
-            <div class="prob-card"><div class="prob-value red" id="u-none">—</div><div class="prob-label">Kans op géén uninkable</div></div>
-          </div>
-
-          <label>Verdeling: exact X uninkables in openingshand</label>
-          <div class="chart-wrap" style="height:200px;margin-top:8px">
-            <canvas id="chart-uninkable" role="img" aria-label="Verdeling uninkables in hand"></canvas>
-          </div>
-        </div>
-
-        <!-- MODE: RAMP MULLIGAN -->
-        <div id="mode-ramp" class="card" style="margin-bottom:1rem;display:none">
-          <div class="card-title">Ramp kaart — gedeeltelijke mulligan</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">
-            Je hebt al X kaarten vastgehouden. Je mulligan de rest. Hoe groot is de kans dat je in je nieuwe kaarten minstens 1 ramp kaart pakt?
-          </p>
-
-          <div class="grid-2" style="margin-bottom:1rem">
-            <div>
-              <label>Kaarten al vastgehouden</label>
-              <input type="number" id="ramp-kept" value="1" min="0" max="6" oninput="calcProb()">
-            </div>
-            <div>
-              <label>Nieuwe kaarten getrokken</label>
-              <input type="number" id="ramp-drawn" value="6" min="1" max="7" oninput="calcProb()">
-            </div>
-          </div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">
-            Voorbeeld: je houdt 1 kaart vast en trekt 6 nieuwe → kans dat er minstens 1 ramp bij zit.
-          </p>
-
-          <!-- Scenarios tabel -->
-          <label>Kans per aantal vastgehouden kaarten (1 t/m 6)</label>
-          <div id="ramp-table" style="margin-top:8px"></div>
-
-          <div class="chart-wrap" style="height:180px;margin-top:1.25rem">
-            <canvas id="chart-ramp" role="img" aria-label="Ramp kansen per mulligan grootte"></canvas>
-          </div>
-        </div>
-
-        <!-- UITLEG -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:12px;color:var(--muted)" id="prob-uitleg">
-          <strong style="color:var(--text)">Hoe werkt de berekening?</strong><br>
-          We gebruiken de hypergeometrische verdeling: de exacte kans om precies k kaarten van een bepaald type te trekken uit een deck zonder teruglegging.
-          <br><br>
-          <strong style="color:var(--text)">Volledige mulligan:</strong> Alle 7 kaarten terug, opnieuw 7 trekken. P(≥1) = 1 − P(0 in hand 1) × P(0 in hand 2).
-          <br><br>
-          <strong style="color:var(--text)">Gedeeltelijke mulligan:</strong> Je houdt X kaarten vast. De resterende kaarten gaan terug in het deck, en je trekt (7 − X) nieuwe uit de overgebleven (60 − X) kaarten.
-        </div>
+    <div class="config-section">
+      <h3>Database verbinding</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Wijzig je Supabase verbinding.</p>
+      <label>Project URL</label>
+      <input type="text" id="config-url" placeholder="https://xxxxxx.supabase.co" style="max-width:400px">
+      <label>Anon Key</label>
+      <input type="text" id="config-key" placeholder="eyJ..." style="max-width:400px">
+      <div style="margin-top:1rem;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="saveSupabaseConfig()">Opslaan & herverbinden</button>
+        <button class="btn btn-danger btn-sm" onclick="resetConfig()" style="margin-top:0">Reset configuratie</button>
       </div>
     </div>
   </div>
 
 </main>
 
+<div class="toast" id="toast"></div>
+
 <script>
 // ============================================================
-// STATE
+// SUPABASE CONFIG
 // ============================================================
-let games = JSON.parse(localStorage.getItem('lame-games') || '[]');
-let savedDecks = JSON.parse(localStorage.getItem('lame-decks') || '[]');
-let currentDeck = {}; // { cardId: { card, count } }
-let searchTimeout = null;
-let timeChart = null;
-let eventChart = null;
+const SETUP_SQL = `-- Voer dit uit in Supabase SQL Editor
+create table if not exists players (
+  id uuid primary key default gen_random_uuid(),
+  name text unique not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists games (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid references players(id) on delete cascade,
+  my_deck text not null,
+  opp_deck text not null,
+  result text not null check (result in ('win','loss')),
+  date date,
+  event_type text default 'locals',
+  tourney_name text,
+  note text,
+  created_at timestamptz default now()
+);
+
+-- Allow public read/write (no login needed)
+alter table players enable row level security;
+alter table games enable row level security;
+create policy "public_all" on players for all using (true) with check (true);
+create policy "public_all" on games for all using (true) with check (true);`;
+
+document.getElementById('setup-sql').textContent = SETUP_SQL;
+
+let supabase = null;
+let players = [];
+let games = [];
+let activePlayerId = null;
+let timeChart = null, eventChart = null, probChartU = null, probChartR = null;
+
+function getSavedConfig() {
+  return {
+    url: localStorage.getItem('lame-sb-url') || '',
+    key: localStorage.getItem('lame-sb-key') || ''
+  };
+}
+
+function saveSupabaseConfig() {
+  const url = (document.getElementById('setup-url') || document.getElementById('config-url')).value.trim()
+    || document.getElementById('config-url')?.value.trim();
+  const key = (document.getElementById('setup-key') || document.getElementById('config-key')).value.trim()
+    || document.getElementById('config-key')?.value.trim();
+
+  const finalUrl = document.getElementById('setup-url')?.value.trim() || document.getElementById('config-url')?.value.trim();
+  const finalKey = document.getElementById('setup-key')?.value.trim() || document.getElementById('config-key')?.value.trim();
+
+  if (!finalUrl || !finalKey) { showToast('Vul beide velden in', 'error'); return; }
+  localStorage.setItem('lame-sb-url', finalUrl);
+  localStorage.setItem('lame-sb-key', finalKey);
+  location.reload();
+}
+
+function resetConfig() {
+  if (!confirm('Configuratie verwijderen? Je data in Supabase blijft bewaard.')) return;
+  localStorage.removeItem('lame-sb-url');
+  localStorage.removeItem('lame-sb-key');
+  location.reload();
+}
+
+async function initSupabase() {
+  const { url, key } = getSavedConfig();
+  if (!url || !key) {
+    document.getElementById('setup-overlay').style.display = 'flex';
+    return false;
+  }
+  document.getElementById('setup-overlay').style.display = 'none';
+  // Fill config fields
+  if (document.getElementById('config-url')) document.getElementById('config-url').value = url;
+  if (document.getElementById('config-key')) document.getElementById('config-key').value = key;
+
+  supabase = window.supabase.createClient(url, key);
+  try {
+    await loadPlayers();
+    return true;
+  } catch(e) {
+    showToast('Verbinding mislukt. Controleer URL en key.', 'error');
+    document.getElementById('setup-overlay').style.display = 'flex';
+    return false;
+  }
+}
+
+// ============================================================
+// PLAYERS
+// ============================================================
+async function loadPlayers() {
+  const { data, error } = await supabase.from('players').select('*').order('name');
+  if (error) throw error;
+  players = data || [];
+  renderPlayerDropdowns();
+  renderPlayerChips();
+}
+
+function renderPlayerDropdowns() {
+  const sel = document.getElementById('active-player');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Kies speler —</option>' +
+    players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (prev && players.find(p => p.id === prev)) sel.value = prev;
+}
+
+function renderPlayerChips() {
+  const el = document.getElementById('player-chips');
+  if (!players.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px">Nog geen spelers toegevoegd.</div>';
+    return;
+  }
+  el.innerHTML = players.map(p =>
+    `<span class="player-chip">${p.name}<button onclick="deletePlayer('${p.id}','${p.name}')">✕</button></span>`
+  ).join('');
+}
+
+async function addPlayer() {
+  const name = document.getElementById('new-player-name').value.trim();
+  if (!name) return;
+  const { error } = await supabase.from('players').insert({ name });
+  if (error) { showToast('Naam bestaat al of fout opgetreden', 'error'); return; }
+  document.getElementById('new-player-name').value = '';
+  showToast(`${name} toegevoegd!`, 'success');
+  await loadPlayers();
+}
+
+async function deletePlayer(id, name) {
+  if (!confirm(`${name} verwijderen? Alle spellen van deze speler worden ook verwijderd!`)) return;
+  const { error } = await supabase.from('players').delete().eq('id', id);
+  if (error) { showToast('Fout bij verwijderen', 'error'); return; }
+  showToast(`${name} verwijderd`, 'success');
+  if (activePlayerId === id) { activePlayerId = null; games = []; renderAll(); }
+  await loadPlayers();
+}
+
+async function onPlayerChange() {
+  activePlayerId = document.getElementById('active-player').value || null;
+  games = [];
+  if (activePlayerId) await loadGames();
+  renderAll();
+  updateDeckDatalist();
+}
+
+// ============================================================
+// GAMES
+// ============================================================
+async function loadGames() {
+  if (!activePlayerId) return;
+  const { data, error } = await supabase.from('games')
+    .select('*')
+    .eq('player_id', activePlayerId)
+    .order('created_at', { ascending: false });
+  if (error) { showToast('Fout bij laden spellen', 'error'); return; }
+  games = data || [];
+}
+
+async function addGame() {
+  if (!activePlayerId) { showToast('Selecteer eerst een speler', 'error'); return; }
+  const myDeck = document.getElementById('my-deck').value.trim();
+  const oppDeck = document.getElementById('opp-deck').value.trim();
+  if (!myDeck || !oppDeck) { showToast('Vul beide decks in', 'error'); return; }
+  const g = {
+    player_id: activePlayerId,
+    my_deck: myDeck,
+    opp_deck: oppDeck,
+    result: document.getElementById('result').value,
+    date: document.getElementById('game-date').value || null,
+    event_type: document.getElementById('event-type').value,
+    tourney_name: document.getElementById('tourney-name').value.trim() || null,
+    note: document.getElementById('note').value.trim() || null
+  };
+  const { error } = await supabase.from('games').insert(g);
+  if (error) { showToast('Fout bij opslaan', 'error'); return; }
+  showToast('Spel opgeslagen!', 'success');
+  ['my-deck','opp-deck','note','tourney-name'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('event-type').value = 'locals';
+  toggleTourneyField();
+  await loadGames();
+  updateDeckDatalist();
+  showSection('stats');
+}
+
+async function deleteGame(id) {
+  if (!confirm('Dit spel verwijderen?')) return;
+  const { error } = await supabase.from('games').delete().eq('id', id);
+  if (error) { showToast('Fout bij verwijderen', 'error'); return; }
+  showToast('Spel verwijderd', 'success');
+  games = games.filter(g => g.id !== id);
+  renderHistory();
+  renderStats();
+}
 
 // ============================================================
 // NAVIGATION
@@ -511,24 +624,28 @@ function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
-  const btns = document.querySelectorAll('nav button');
-  const map = { stats:0, add:1, matchups:2, history:3, deckbuilder:4 };
-  btns[map[id]].classList.add('active');
+  const map = { stats:0, add:1, matchups:2, history:3, prob:4, config:5 };
+  document.querySelectorAll('nav button')[map[id]].classList.add('active');
+
   if (id === 'stats') renderStats();
   if (id === 'matchups') renderMatchups();
   if (id === 'history') renderHistory();
-  if (id === 'deckbuilder') renderSavedDecks();
-  if (id === 'add') { document.getElementById('game-date').valueAsDate = new Date(); updateDeckDatalist(); }
+  if (id === 'prob') calcProb();
+  if (id === 'add') {
+    document.getElementById('game-date').valueAsDate = new Date();
+    const noPlayer = !activePlayerId;
+    document.getElementById('add-no-player').style.display = noPlayer ? 'block' : 'none';
+    document.getElementById('add-form').style.display = noPlayer ? 'none' : 'block';
+    updateDeckDatalist();
+  }
 }
 
-function showSubTab(group, id) {
-  const prefix = group === 'matchups' ? 'matchups' : 'deck';
-  document.querySelectorAll(`#sec-${group === 'matchups' ? 'matchups' : 'deckbuilder'} .sub-section`).forEach(s => s.classList.remove('active'));
-  document.querySelectorAll(`#sec-${group === 'matchups' ? 'matchups' : 'deckbuilder'} .sub-tab`).forEach(b => b.classList.remove('active'));
+function showSubTab(group, id, btn) {
+  const prefix = group;
+  document.querySelectorAll(`#sec-${group==='mu'?'matchups':'prob'} .sub-section`).forEach(s => s.classList.remove('active'));
+  document.querySelectorAll(`#sec-${group==='mu'?'matchups':'prob'} .sub-tab`).forEach(b => b.classList.remove('active'));
   document.getElementById(prefix + '-' + id).classList.add('active');
-  event.target.classList.add('active');
-  if (id === 'prob') calcProb();
-  if (id === 'saved') renderSavedDecks();
+  btn.classList.add('active');
 }
 
 function toggleTourneyField() {
@@ -536,40 +653,20 @@ function toggleTourneyField() {
     document.getElementById('event-type').value === 'tournooi' ? 'block' : 'none';
 }
 
-// ============================================================
-// GAME LOGGING
-// ============================================================
-function addGame() {
-  const myDeck = document.getElementById('my-deck').value.trim();
-  const oppDeck = document.getElementById('opp-deck').value.trim();
-  if (!myDeck || !oppDeck) { alert('Vul beide decks in!'); return; }
-  const g = {
-    id: Date.now(),
-    myDeck,
-    oppDeck,
-    result: document.getElementById('result').value,
-    date: document.getElementById('game-date').value,
-    eventType: document.getElementById('event-type').value,
-    tourneyName: document.getElementById('tourney-name').value.trim(),
-    note: document.getElementById('note').value.trim()
-  };
-  games.unshift(g);
-  saveGames();
-  ['my-deck','opp-deck','note','tourney-name'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('event-type').value = 'locals';
-  toggleTourneyField();
-  showSection('stats');
+function updateDeckDatalist() {
+  const myDecks = [...new Set(games.map(g => g.my_deck).filter(Boolean))];
+  const oppDecks = [...new Set(games.map(g => g.opp_deck).filter(Boolean))];
+  document.getElementById('dl-my').innerHTML = myDecks.map(d => `<option value="${d}">`).join('');
+  document.getElementById('dl-opp').innerHTML = oppDecks.map(d => `<option value="${d}">`).join('');
 }
 
-function deleteGame(id) {
-  if (!confirm('Dit spel verwijderen?')) return;
-  games = games.filter(g => g.id !== id);
-  saveGames();
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll() {
+  renderStats();
+  renderMatchups();
   renderHistory();
-}
-
-function saveGames() {
-  localStorage.setItem('lame-games', JSON.stringify(games));
 }
 
 // ============================================================
@@ -582,129 +679,92 @@ function renderStats() {
   const wins = games.filter(g => g.result === 'win').length;
   const total = games.length;
   const losses = total - wins;
-  document.getElementById('m-total').textContent = total;
-  document.getElementById('m-wr').textContent = pctStr(wins, total);
-  document.getElementById('m-wins').textContent = wins;
-  document.getElementById('m-losses').textContent = losses;
+
+  document.getElementById('m-total').textContent = activePlayerId ? total : '—';
+  document.getElementById('m-wr').textContent = activePlayerId ? pctStr(wins, total) : '—';
+  document.getElementById('m-wins').textContent = activePlayerId ? wins : '—';
+  document.getElementById('m-losses').textContent = activePlayerId ? losses : '—';
 
   // Deck breakdown
   const deckStats = {};
   games.forEach(g => {
-    if (!deckStats[g.myDeck]) deckStats[g.myDeck] = { w: 0, t: 0 };
-    deckStats[g.myDeck].t++;
-    if (g.result === 'win') deckStats[g.myDeck].w++;
+    if (!deckStats[g.my_deck]) deckStats[g.my_deck] = { w:0, t:0 };
+    deckStats[g.my_deck].t++;
+    if (g.result === 'win') deckStats[g.my_deck].w++;
   });
   const deckEl = document.getElementById('deck-breakdown');
-  if (!Object.keys(deckStats).length) {
+  if (!activePlayerId) {
+    deckEl.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>Kies een speler</div>';
+  } else if (!Object.keys(deckStats).length) {
     deckEl.innerHTML = '<div class="empty"><div class="empty-icon">🃏</div>Nog geen spellen</div>';
   } else {
     deckEl.innerHTML = Object.entries(deckStats)
       .sort((a,b) => pct(b[1].w,b[1].t) - pct(a[1].w,a[1].t))
       .map(([deck, s]) => {
         const p = pct(s.w, s.t);
-        const barClass = p >= 55 ? 'green' : p <= 40 ? 'red' : '';
+        const cls = p >= 55 ? 'green' : p <= 40 ? 'red' : '';
         return `<div style="margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-            <span>${deck}</span>
-            <span style="color:var(--muted)">${s.w}/${s.t} — <strong style="color:var(--text)">${p}%</strong></span>
+            <span>${deck}</span><span style="color:var(--muted)">${s.w}/${s.t} — <strong style="color:var(--text)">${p}%</strong></span>
           </div>
-          <div class="bar-bg"><div class="bar ${barClass}" style="width:${p}%"></div></div>
+          <div class="bar-bg"><div class="bar ${cls}" style="width:${p}%"></div></div>
         </div>`;
       }).join('');
   }
 
   // Best matchup
-  const matchups = buildMatchups();
-  const sorted = Object.values(matchups).sort((a,b) => pct(b.w,b.t) - pct(a.w,a.t));
+  const sorted = buildMatchups();
   const bestEl = document.getElementById('best-matchup');
   if (!sorted.length) {
     bestEl.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div>Nog geen data</div>';
   } else {
-    const best = sorted[0];
+    const b = sorted[0];
     bestEl.innerHTML = `
-      <div style="font-size:15px;font-weight:600">${best.my}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">vs ${best.opp}</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--green)">${pct(best.w,best.t)}%</div>
-      <div style="font-size:12px;color:var(--muted)">${best.w} van ${best.t} gewonnen</div>`;
+      <div style="font-size:15px;font-weight:600">${b.my}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">vs ${b.opp}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--green)">${pct(b.w,b.t)}%</div>
+      <div style="font-size:12px;color:var(--muted)">${b.w} van ${b.t} gewonnen</div>`;
   }
 
-  // Time chart
   renderTimeChart();
   renderEventChart();
 }
 
 function renderTimeChart() {
   const ctx = document.getElementById('chart-time').getContext('2d');
-  if (timeChart) timeChart.destroy();
-  if (games.length < 2) { return; }
-
-  // Cumulative winrate per game (reversed = chronological)
+  if (timeChart) { timeChart.destroy(); timeChart = null; }
+  if (games.length < 2) return;
   const chrono = [...games].reverse();
-  const labels = [];
-  const data = [];
   let wins = 0;
+  const labels = [], data = [];
   chrono.forEach((g, i) => {
     if (g.result === 'win') wins++;
     labels.push(i + 1);
-    data.push(Math.round((wins / (i + 1)) * 100));
+    data.push(Math.round((wins / (i+1)) * 100));
   });
-
   timeChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Winrate %',
-        data,
-        borderColor: '#f5a623',
-        backgroundColor: 'rgba(245,166,35,0.1)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: data.length > 20 ? 0 : 3,
-        pointBackgroundColor: '#f5a623'
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: { min: 0, max: 100, ticks: { color: '#888', font: { size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      }
-    }
+    data: { labels, datasets: [{ data, borderColor: '#f5a623', backgroundColor: 'rgba(245,166,35,0.1)', fill: true, tension: 0.3, pointRadius: data.length > 20 ? 0 : 3, pointBackgroundColor: '#f5a623' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color:'#888', font:{size:11} }, grid: { color:'rgba(255,255,255,0.05)' } }, y: { min:0, max:100, ticks: { color:'#888', font:{size:11}, callback: v => v+'%' }, grid: { color:'rgba(255,255,255,0.05)' } } } }
   });
 }
 
 function renderEventChart() {
   const ctx = document.getElementById('chart-events').getContext('2d');
-  if (eventChart) eventChart.destroy();
-  const types = ['locals', 'setchamp', 'tournooi'];
-  const labels = ['Locals', 'Set Champ', 'Toernooi'];
+  if (eventChart) { eventChart.destroy(); eventChart = null; }
+  const types = ['locals','setchamp','tournooi'];
+  const labels = ['Locals','Set Champ','Toernooi'];
   const data = types.map(t => {
-    const g = games.filter(g => g.eventType === t);
-    return g.length ? pct(g.filter(g => g.result === 'win').length, g.length) : null;
+    const g = games.filter(g => g.event_type === t);
+    return g.length ? pct(g.filter(g => g.result==='win').length, g.length) : null;
   });
   if (data.every(d => d === null)) return;
-
   eventChart = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Winrate %',
-        data,
-        backgroundColor: ['rgba(96,165,250,0.7)', 'rgba(167,139,250,0.7)', 'rgba(245,166,35,0.7)'],
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#888', font: { size: 11 } }, grid: { display: false } },
-        y: { min: 0, max: 100, ticks: { color: '#888', font: { size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      }
-    }
+    data: { labels, datasets: [{ data, backgroundColor: ['rgba(96,165,250,0.7)','rgba(167,139,250,0.7)','rgba(245,166,35,0.7)'], borderRadius: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color:'#888', font:{size:11} }, grid:{display:false} }, y: { min:0, max:100, ticks: { color:'#888', font:{size:11}, callback: v=>v+'%' }, grid:{color:'rgba(255,255,255,0.05)'} } } }
   });
 }
 
@@ -712,45 +772,41 @@ function renderEventChart() {
 // MATCHUPS
 // ============================================================
 function buildMatchups() {
-  const matchups = {};
+  const map = {};
   games.forEach(g => {
-    const key = g.myDeck + '|||' + g.oppDeck;
-    if (!matchups[key]) matchups[key] = { my: g.myDeck, opp: g.oppDeck, w: 0, t: 0 };
-    matchups[key].t++;
-    if (g.result === 'win') matchups[key].w++;
+    const key = g.my_deck + '|||' + g.opp_deck;
+    if (!map[key]) map[key] = { my: g.my_deck, opp: g.opp_deck, w:0, t:0 };
+    map[key].t++;
+    if (g.result === 'win') map[key].w++;
   });
-  return matchups;
+  return Object.values(map).sort((a,b) => pct(b.w,b.t) - pct(a.w,a.t));
 }
 
 function matchupTableHTML(list) {
   if (!list.length) return '<div class="empty">Geen data</div>';
-  return `<table>
-    <thead><tr><th>Jouw deck</th><th>Tegenstander</th><th>W/T</th><th>Winrate</th><th></th></tr></thead>
-    <tbody>${list.map(m => {
+  return `<table><thead><tr><th>Jouw deck</th><th>Tegenstander</th><th>W/T</th><th>Winrate</th></tr></thead><tbody>` +
+    list.map(m => {
       const p = pct(m.w, m.t);
-      const barClass = p >= 55 ? 'green' : p <= 40 ? 'red' : '';
+      const cls = p>=55?'green':p<=40?'red':'';
       return `<tr>
-        <td>${m.my}</td>
-        <td>${m.opp}</td>
+        <td>${m.my}</td><td>${m.opp}</td>
         <td style="color:var(--muted)">${m.w}/${m.t}</td>
-        <td style="min-width:120px">
+        <td style="min-width:130px">
           <div style="display:flex;align-items:center;gap:8px">
-            <div class="matchup-pct" style="color:${p>=55?'var(--green)':p<=40?'var(--red)':'var(--text)'}">${p}%</div>
-            <div style="flex:1"><div class="bar-bg"><div class="bar ${barClass}" style="width:${p}%"></div></div></div>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;min-width:48px;color:${p>=55?'var(--green)':p<=40?'var(--red)':'var(--text)'}">${p}%</span>
+            <div style="flex:1"><div class="bar-bg"><div class="bar ${cls}" style="width:${p}%"></div></div></div>
           </div>
         </td>
       </tr>`;
-    }).join('')}</tbody>
-  </table>`;
+    }).join('') + '</tbody></table>';
 }
 
 function renderMatchups() {
-  const matchups = buildMatchups();
-  const all = Object.values(matchups).sort((a,b) => pct(b.w,b.t) - pct(a.w,a.t));
+  const all = buildMatchups();
   const min2 = all.filter(m => m.t >= 2);
-  document.getElementById('matchup-all-table').innerHTML = matchupTableHTML(all);
-  document.getElementById('matchup-best-table').innerHTML = matchupTableHTML(min2.slice(0, 10));
-  document.getElementById('matchup-worst-table').innerHTML = matchupTableHTML([...min2].sort((a,b) => pct(a.w,a.t) - pct(b.w,b.t)).slice(0, 10));
+  document.getElementById('mu-all-table').innerHTML = matchupTableHTML(all);
+  document.getElementById('mu-best-table').innerHTML = matchupTableHTML(min2.slice(0,10));
+  document.getElementById('mu-worst-table').innerHTML = matchupTableHTML([...min2].sort((a,b) => pct(a.w,a.t)-pct(b.w,b.t)).slice(0,10));
 }
 
 // ============================================================
@@ -759,411 +815,111 @@ function renderMatchups() {
 function renderHistory() {
   const filterDeck = document.getElementById('filter-deck').value;
   const filterEvent = document.getElementById('filter-event').value;
-  const decks = [...new Set(games.flatMap(g => [g.myDeck, g.oppDeck]))].sort();
+
+  const decks = [...new Set(games.flatMap(g => [g.my_deck, g.opp_deck]))].sort();
   const fd = document.getElementById('filter-deck');
   const cur = fd.value;
-  fd.innerHTML = '<option value="">Alle decks</option>' + decks.map(d => `<option value="${d}" ${d===cur?'selected':''}>${d}</option>`).join('');
+  fd.innerHTML = '<option value="">Alle decks</option>' + decks.map(d => `<option value="${d}"${d===cur?' selected':''}>${d}</option>`).join('');
 
   const filtered = games.filter(g =>
-    (!filterDeck || g.myDeck === filterDeck || g.oppDeck === filterDeck) &&
-    (!filterEvent || g.eventType === filterEvent)
+    (!filterDeck || g.my_deck===filterDeck || g.opp_deck===filterDeck) &&
+    (!filterEvent || g.event_type===filterEvent)
   );
 
-  const histEl = document.getElementById('history-table');
-  if (!filtered.length) {
-    histEl.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Geen spellen gevonden</div>';
-    return;
-  }
+  const el = document.getElementById('history-table');
+  if (!activePlayerId) { el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>Kies een speler</div>'; return; }
+  if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Geen spellen gevonden</div>'; return; }
 
-  histEl.innerHTML = `<table>
-    <thead><tr><th>Datum</th><th>Jouw deck</th><th>Tegenstander</th><th>Event</th><th>Resultaat</th><th>Notitie</th><th></th></tr></thead>
-    <tbody>${filtered.map(g => {
-      const evLabel = g.eventType === 'locals' ? 'Locals' : g.eventType === 'setchamp' ? 'Set Champ' : (g.tourneyName || 'Toernooi');
+  el.innerHTML = `<table><thead><tr><th>Datum</th><th>Jouw deck</th><th>Tegenstander</th><th>Event</th><th>Resultaat</th><th>Notitie</th><th></th></tr></thead><tbody>` +
+    filtered.map(g => {
+      const ev = g.event_type==='locals'?'Locals':g.event_type==='setchamp'?'Set Champ':(g.tourney_name||'Toernooi');
       return `<tr>
-        <td style="color:var(--muted);white-space:nowrap">${g.date || '—'}</td>
-        <td>${g.myDeck}</td>
-        <td>${g.oppDeck}</td>
-        <td><span class="badge badge-${g.eventType}">${evLabel}</span></td>
-        <td><span class="badge badge-${g.result}">${g.result === 'win' ? 'Gewonnen' : 'Verloren'}</span></td>
-        <td style="color:var(--muted);font-size:12px">${g.note || '—'}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteGame(${g.id})">✕</button></td>
+        <td style="color:var(--muted);white-space:nowrap">${g.date||'—'}</td>
+        <td>${g.my_deck}</td><td>${g.opp_deck}</td>
+        <td><span class="badge badge-${g.event_type}">${ev}</span></td>
+        <td><span class="badge badge-${g.result}">${g.result==='win'?'Gewonnen':'Verloren'}</span></td>
+        <td style="color:var(--muted);font-size:12px">${g.note||'—'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">✕</button></td>
       </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-}
-
-function updateDeckDatalist() {
-  const decks = [...new Set(games.map(g => g.myDeck).filter(Boolean))];
-  const opps = [...new Set(games.map(g => g.oppDeck).filter(Boolean))];
-  document.getElementById('dl-my').innerHTML = decks.map(d => `<option value="${d}">`).join('');
-  document.getElementById('dl-opp').innerHTML = opps.map(d => `<option value="${d}">`).join('');
-}
-
-// ============================================================
-// DECK BUILDER
-// ============================================================
-function searchCards() {
-  clearTimeout(searchTimeout);
-  const q = document.getElementById('card-search').value.trim();
-  const ink = document.getElementById('filter-ink').value;
-  const type = document.getElementById('filter-type').value;
-  const resultsEl = document.getElementById('search-results');
-  const spinner = document.getElementById('search-spinner');
-
-  if (!q && !ink && !type) { resultsEl.innerHTML = ''; return; }
-
-  spinner.classList.add('visible');
-  searchTimeout = setTimeout(async () => {
-    try {
-      let query = q || '*';
-      if (ink) query += ` ink:${ink}`;
-      if (type) query += ` type:${type}`;
-      
-      const apiUrl = 'https://api.lorcast.com/v0/cards/search?q=' + encodeURIComponent(query);
-      const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(apiUrl));
-      
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      ``
-
-
-      const data = await res.json();
-      spinner.classList.remove('visible');
-      const results = (data.results || []).slice(0, 30);
-      if (!results.length) { resultsEl.innerHTML = '<div style="padding:12px;color:var(--muted);font-size:13px">Geen kaarten gevonden</div>'; return; }
-      resultsEl.innerHTML = results.map(c => {
-        const inkClass = c.ink ? 'ink-' + c.ink.toLowerCase() : '';
-        const inkwellIcon = c.inkwell ? '💧' : '🚫';
-        return `<div class="card-search-result" data-card="${encodeURIComponent(JSON.stringify(c))}">
-          <img class="card-thumb" src="${c.image_uris?.digital?.small || ''}" alt="${c.name}" loading="lazy" onerror="this.style.display='none'">
-          <div style="flex:1">
-            <div class="card-info-name ${inkClass}">${c.name}${c.version ? ' — ' + c.version : ''}</div>
-            <div class="card-info-sub">${c.ink || '—'} · ${(c.type||[]).join(', ')} · Cost: ${c.cost ?? '?'} ${inkwellIcon}</div>
-          </div>
-        </div>`;
-      }).join('');
-    } catch(e) {
-      spinner.classList.remove('visible');
-      resultsEl.innerHTML = '<div style="padding:12px;color:var(--red);font-size:13px">Fout bij laden kaarten. Controleer je verbinding.</div>';
-    }
-  }, 400);
-}
-
-document.getElementById('search-results').addEventListener('click', (e) => {
-  const el = e.target.closest('.card-search-result');
-  if (!el) return;
-
-  try {
-    const card = JSON.parse(decodeURIComponent(el.dataset.card));
-    addCardToDeck(card);
-  } catch (err) {
-    console.error(err);
-    alert('Fout bij toevoegen kaart');
-  }
-});
-  
-function addCardToDeck(card) {
-  const id = card.id;
-  if (currentDeck[id]) {
-    if (currentDeck[id].count >= 4) { alert('Max 4 kopieën per kaart!'); return; }
-    currentDeck[id].count++;
-  } else {
-    currentDeck[id] = { card, count: 1 };
-  }
-  renderDeck();
-}
-
-function changeDeckCount(id, delta) {
-  if (!currentDeck[id]) return;
-  currentDeck[id].count += delta;
-  if (currentDeck[id].count <= 0) delete currentDeck[id];
-  renderDeck();
-}
-
-function renderDeck() {
-  const total = Object.values(currentDeck).reduce((s, e) => s + e.count, 0);
-  document.getElementById('deck-count').textContent = total;
-  const el = document.getElementById('deck-list');
-  if (!Object.keys(currentDeck).length) {
-    el.innerHTML = '<div class="empty" style="padding:1.5rem">Voeg kaarten toe</div>';
-    return;
-  }
-  // Group by ink
-  const byInk = {};
-  Object.values(currentDeck).forEach(({ card, count }) => {
-    const ink = card.ink || 'Geen';
-    if (!byInk[ink]) byInk[ink] = [];
-    byInk[ink].push({ card, count });
-  });
-
-  el.innerHTML = Object.entries(byInk).sort().map(([ink, entries]) => {
-    const inkClass = 'ink-' + ink.toLowerCase();
-    const dotClass = 'dot-' + ink.toLowerCase();
-    return `<div style="margin-bottom:10px">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;display:flex;align-items:center;gap:6px">
-        <span class="ink-dot ${dotClass}"></span>${ink}
-      </div>
-      ${entries.sort((a,b) => (a.card.cost||0)-(b.card.cost||0)).map(({ card, count }) => `
-        <div class="deck-slot">
-          <span class="deck-slot-count">${count}</span>
-          <span class="deck-slot-name ${inkClass}" style="font-size:13px">${card.name}${card.version?' <span style="color:var(--muted);font-size:11px">— '+card.version+'</span>':''}</span>
-          <span class="deck-slot-cost">${card.cost ?? '?'} 💧</span>
-          <button class="qty-btn" onclick="changeDeckCount('${card.id}', -1)">−</button>
-          <button class="qty-btn" onclick="changeDeckCount('${card.id}', 1)">+</button>
-        </div>`).join('')}
-    </div>`;
-  }).join('');
-}
-
-function saveDeck() {
-  const name = document.getElementById('deck-name').value.trim();
-  if (!name) { alert('Geef je deck een naam!'); return; }
-  const total = Object.values(currentDeck).reduce((s, e) => s + e.count, 0);
-  const existing = savedDecks.findIndex(d => d.name === name);
-  const deck = { name, cards: currentDeck, total, savedAt: new Date().toISOString() };
-  if (existing >= 0) savedDecks[existing] = deck;
-  else savedDecks.push(deck);
-  localStorage.setItem('lame-decks', JSON.stringify(savedDecks));
-  alert(`Deck "${name}" opgeslagen!`);
-}
-
-function loadDeck(i) {
-  currentDeck = JSON.parse(JSON.stringify(savedDecks[i].cards));
-  document.getElementById('deck-name').value = savedDecks[i].name;
-  renderDeck();
-  showSubTab('deck', 'build');
-  document.querySelectorAll('#sec-deckbuilder .sub-tab')[0].click();
-}
-
-function deleteSavedDeck(i) {
-  if (!confirm('Dit deck verwijderen?')) return;
-  savedDecks.splice(i, 1);
-  localStorage.setItem('lame-decks', JSON.stringify(savedDecks));
-  renderSavedDecks();
-}
-
-function clearDeck() {
-  if (!confirm('Deck leeg maken?')) return;
-  currentDeck = {};
-  renderDeck();
-}
-
-function toggleImport() {
-  const el = document.getElementById('import-wrap');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-async function importDeck() {
-  const text = document.getElementById('import-text').value.trim();
-  if (!text) return;
-
-  const lines = text
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean);
-
-  if (!lines.length) return;
-
-  for (const line of lines) {
-    const match = line.match(/^(\d+)\s+(.+)$/);
-    if (!match) continue;
-
-    const count = parseInt(match[1], 10);
-    const name = match[2];
-
-    try {
-      const apiUrl =
-        'https://api.lorcast.com/v0/cards/search?q=' +
-        encodeURIComponent(name);
-
-      const res = await fetch(
-        'https://corsproxy.io/?' + encodeURIComponent(apiUrl)
-      );
-
-      if (!res.ok) continue;
-
-      const data = await res.json();
-      const card = data.results?.[0];
-      if (!card) continue;
-
-      for (let i = 0; i < count; i++) {
-        addCardToDeck(card);
-      }
-    } catch (e) {
-      console.warn('Import mislukt voor:', name);
-    }
-  }
-
-  document.getElementById('import-text').value = '';
-  toggleImport();
-}
-function renderSavedDecks() {
-  const el = document.getElementById('saved-decks-list');
-  if (!savedDecks.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">💾</div>Nog geen decks opgeslagen</div>';
-    return;
-  }
-  el.innerHTML = `<div class="grid-3">${savedDecks.map((d, i) => {
-    const inks = [...new Set(Object.values(d.cards).map(e => e.card.ink).filter(Boolean))];
-    return `<div class="deck-card">
-      <div class="deck-card-name">${d.name}</div>
-      <div style="display:flex;gap:4px;margin-bottom:6px">${inks.map(ink => `<span class="ink-dot dot-${ink.toLowerCase()}"></span>`).join('')}</div>
-      <div class="deck-card-meta">${d.total}/60 kaarten · ${new Date(d.savedAt).toLocaleDateString('nl-NL')}</div>
-      <div style="display:flex;gap:6px;margin-top:10px">
-        <button class="btn btn-ghost btn-sm" onclick="loadDeck(${i})">Laden</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteSavedDeck(${i})">Verwijderen</button>
-      </div>
-    </div>`;
-  }).join('')}</div>`;
+    }).join('') + '</tbody></table>';
 }
 
 // ============================================================
 // PROBABILITY CALCULATOR
 // ============================================================
 function logC(a, b) {
-  if (b < 0 || b > a) return -Infinity;
-  if (b === 0 || b === a) return 0;
-  let r = 0;
-  for (let i = 0; i < b; i++) r += Math.log(a - i) - Math.log(i + 1);
+  if (b<0||b>a) return -Infinity;
+  if (b===0||b===a) return 0;
+  let r=0;
+  for (let i=0;i<b;i++) r+=Math.log(a-i)-Math.log(i+1);
   return r;
 }
-function hypergeometric(N, K, n, k) {
-  return Math.exp(logC(K, k) + logC(N - K, n - k) - logC(N, n));
-}
-function pAtLeastOne(N, K, n) {
-  return 1 - hypergeometric(N, K, n, 0);
-}
-
-let probChartUninkable = null;
-let probChartRamp = null;
+function hypergeometric(N,K,n,k) { return Math.exp(logC(K,k)+logC(N-K,n-k)-logC(N,n)); }
+function pAtLeastOne(N,K,n) { return 1-hypergeometric(N,K,n,0); }
 
 function calcProb() {
   const mode = document.getElementById('prob-mode').value;
-  document.getElementById('mode-uninkable').style.display = mode === 'uninkable' ? 'block' : 'none';
-  document.getElementById('mode-ramp').style.display = mode === 'ramp' ? 'block' : 'none';
-
-  const N = Math.max(1, parseInt(document.getElementById('prob-deck-size').value) || 60);
-  const K = Math.min(N, Math.max(0, parseInt(document.getElementById('prob-target').value) || 0));
-
-  // Update label
-  document.getElementById('prob-target-label').textContent =
-    mode === 'uninkable' ? 'Aantal uninkable kaarten' : 'Aantal ramp kaarten in deck';
-
-  if (mode === 'uninkable') calcUninkable(N, K);
-  else calcRamp(N, K);
+  document.getElementById('mode-uninkable').style.display = mode==='uninkable'?'block':'none';
+  document.getElementById('mode-ramp').style.display = mode==='ramp'?'block':'none';
+  document.getElementById('prob-target-label').textContent = mode==='uninkable'?'Aantal uninkable kaarten':'Aantal ramp kaarten in deck';
+  const N = Math.max(1, parseInt(document.getElementById('prob-deck-size').value)||60);
+  const K = Math.min(N, Math.max(0, parseInt(document.getElementById('prob-target').value)||0));
+  if (mode==='uninkable') calcUninkable(N,K);
+  else calcRamp(N,K);
 }
 
-function calcUninkable(N, K) {
-  const n = 7;
-  const p1 = pAtLeastOne(N, K, n);
-  const pMull = 1 - Math.pow(1 - p1, 2);
-  const pNone = 1 - pMull;
-
-  document.getElementById('u-hand').textContent = (p1 * 100).toFixed(1) + '%';
-  document.getElementById('u-mull').textContent = (pMull * 100).toFixed(1) + '%';
-  document.getElementById('u-none').textContent = (pNone * 100).toFixed(1) + '%';
-
-  // Bar chart: exactly k uninkables in opening hand
-  const labels = [], data = [];
-  const maxK = Math.min(K, n);
-  for (let k = 0; k <= maxK; k++) {
-    labels.push(k === 0 ? 'Geen' : k + 'x');
-    data.push(+(hypergeometric(N, K, n, k) * 100).toFixed(2));
-  }
-
-  const ctx = document.getElementById('chart-uninkable').getContext('2d');
-  if (probChartUninkable) probChartUninkable.destroy();
-  probChartUninkable = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Kans (%)',
-        data,
-        backgroundColor: data.map((_, i) => i === 0 ? 'rgba(248,113,113,0.75)' : 'rgba(245,166,35,0.75)'),
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } }
-      },
-      scales: {
-        x: { ticks: { color: '#888', font: { size: 11 } }, grid: { display: false } },
-        y: { min: 0, ticks: { color: '#888', font: { size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      }
-    }
-  });
+function calcUninkable(N,K) {
+  const n=7, p1=pAtLeastOne(N,K,n), pMull=1-Math.pow(1-p1,2), pNone=1-pMull;
+  document.getElementById('u-hand').textContent=(p1*100).toFixed(1)+'%';
+  document.getElementById('u-mull').textContent=(pMull*100).toFixed(1)+'%';
+  document.getElementById('u-none').textContent=(pNone*100).toFixed(1)+'%';
+  const labels=[],data=[];
+  for(let k=0;k<=Math.min(K,n);k++){labels.push(k===0?'Geen':k+'x');data.push(+(hypergeometric(N,K,n,k)*100).toFixed(2));}
+  const ctx=document.getElementById('chart-uninkable').getContext('2d');
+  if(probChartU){probChartU.destroy();}
+  probChartU=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:data.map((_,i)=>i===0?'rgba(248,113,113,0.75)':'rgba(245,166,35,0.75)'),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11}},grid:{display:false}},y:{min:0,ticks:{color:'#888',font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
 }
 
-function calcRamp(N, K) {
-  // For each "kept" scenario (0 to 6), show P(>=1 ramp in new drawn cards)
-  // Deck remaining = N - kept, draw = 7 - kept
-  const rampKept = Math.max(0, Math.min(6, parseInt(document.getElementById('ramp-kept').value) || 1));
-  const rampDrawn = Math.max(1, Math.min(7 - rampKept, parseInt(document.getElementById('ramp-drawn').value) || (7 - rampKept)));
-
-  // Auto-sync drawn
-  document.getElementById('ramp-drawn').value = 7 - rampKept;
-
-  // Table: all scenarios 0..6 kept
-  const rows = [];
-  const chartLabels = [], chartData = [];
-  for (let kept = 0; kept <= 6; kept++) {
-    const drawn = 7 - kept;
-    const deckLeft = N - kept;
-    const p = deckLeft >= drawn && K <= deckLeft ? pAtLeastOne(deckLeft, K, drawn) : 0;
-    const pct = (p * 100).toFixed(1);
-    const isActive = kept === rampKept;
-    const barW = Math.round(p * 100);
-    const barColor = p >= 0.5 ? 'var(--green)' : p >= 0.3 ? 'var(--amber)' : 'var(--red)';
-    rows.push(`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);${isActive ? 'background:rgba(245,166,35,0.05);border-radius:6px;padding:8px 8px;' : ''}">
-      <div style="min-width:130px;font-size:13px;color:${isActive ? 'var(--amber)' : 'var(--text)'}">
-        ${kept === 0 ? 'Volledige mulligan' : kept + ' kaart${kept===1?"":"en"} vast'} <span style="color:var(--muted);font-size:11px">(${drawn} nieuw)</span>
-      </div>
-      <div style="flex:1"><div class="bar-bg"><div class="bar" style="width:${barW}%;background:${barColor}"></div></div></div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;min-width:52px;text-align:right;color:${barColor}">${pct}%</div>
+function calcRamp(N,K) {
+  const kept=Math.max(0,Math.min(6,parseInt(document.getElementById('ramp-kept').value)||1));
+  document.getElementById('ramp-drawn').value=7-kept;
+  const rows=[],chartLabels=[],chartData=[];
+  for(let k=0;k<=6;k++){
+    const drawn=7-k, deckLeft=N-k;
+    const p=deckLeft>=drawn&&K<=deckLeft?pAtLeastOne(deckLeft,K,drawn):0;
+    const pStr=(p*100).toFixed(1), barW=Math.round(p*100);
+    const col=p>=0.5?'var(--green)':p>=0.3?'var(--amber)':'var(--red)';
+    const isActive=k===kept;
+    rows.push(`<div style="display:flex;align-items:center;gap:12px;padding:8px${isActive?';background:rgba(245,166,35,0.05);border-radius:6px;padding:8px':''};border-bottom:1px solid var(--border)">
+      <div style="min-width:150px;font-size:13px;color:${isActive?'var(--amber)':'var(--text)'}">${k===0?'Volledige mulligan':k+' kaart'+(k===1?'':'en')+' vast'} <span style="color:var(--muted);font-size:11px">(${drawn} nieuw)</span></div>
+      <div style="flex:1"><div class="bar-bg"><div class="bar" style="width:${barW}%;background:${col}"></div></div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;min-width:52px;text-align:right;color:${col}">${pStr}%</div>
     </div>`);
-    chartLabels.push(kept + ' vast');
-    chartData.push(+pct);
+    chartLabels.push(k+' vast'); chartData.push(+pStr);
   }
-  document.getElementById('ramp-table').innerHTML = rows.join('');
+  document.getElementById('ramp-table').innerHTML=rows.join('');
+  const ctx=document.getElementById('chart-ramp').getContext('2d');
+  if(probChartR){probChartR.destroy();}
+  probChartR=new Chart(ctx,{type:'line',data:{labels:chartLabels,datasets:[{data:chartData,borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,0.1)',fill:true,tension:0.3,pointRadius:5,pointBackgroundColor:'#f5a623'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}},y:{min:0,max:100,ticks:{color:'#888',font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+}
 
-  // Chart
-  const ctx = document.getElementById('chart-ramp').getContext('2d');
-  if (probChartRamp) probChartRamp.destroy();
-  probChartRamp = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: chartLabels,
-      datasets: [{
-        label: 'Kans op ramp (%)',
-        data: chartData,
-        borderColor: '#f5a623',
-        backgroundColor: 'rgba(245,166,35,0.1)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 5,
-        pointBackgroundColor: '#f5a623'
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } }
-      },
-      scales: {
-        x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: { min: 0, max: 100, ticks: { color: '#888', font: { size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      }
-    }
-  });
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(type?type:'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
 }
 
 // ============================================================
 // INIT
 // ============================================================
 document.getElementById('game-date').valueAsDate = new Date();
-renderStats();
+initSupabase();
 </script>
 </body>
 </html>
